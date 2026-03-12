@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Receipt — {{ booking.booking_ref }}</title>
+    <style>
+      body { font-family: "Rajdhani", sans-serif; margin: 2rem; color: #111; }
+      .receipt { max-width: 740px; margin: auto; border: 1px solid #ddd; border-radius: 16px; padding: 1.5rem; }
+      h1 { font-family: "Orbitron", sans-serif; margin-top: 0; }
+      .row { display:flex; justify-content:space-between; padding:.5rem 0; border-bottom:1px dashed #ddd; }
+      @media print { button { display:none; } body{ margin:.6rem; } }
+    </style>
+  </head>
+  <body>
+    <div class="receipt" data-testid="receipt-page-card">
+      <h1 data-testid="receipt-title">Park Vision Receipt</h1>
+      <div class="row" data-testid="receipt-booking-ref-row"><span>Booking Ref</span><strong>{{ booking.booking_ref }}</strong></div>
+      <div class="row" data-testid="receipt-slot-row"><span>Slot</span><strong>{{ booking.slot.slot_code }} (Zone {{ booking.slot.zone }})</strong></div>
+      <div class="row" data-testid="receipt-duration-row"><span>Duration</span><strong>{{ booking.duration_hours }} hours</strong></div>
+      <div class="row" data-testid="receipt-base-row"><span>Base Amount</span><strong>₹{{ "%.2f"|format(payment.amount) }}</strong></div>
+      <div class="row" data-testid="receipt-tax-row"><span>Tax</span><strong>₹{{ "%.2f"|format(payment.tax) }}</strong></div>
+      <div class="row" data-testid="receipt-total-row"><span>Total</span><strong>₹{{ "%.2f"|format(payment.total) }}</strong></div>
+      <div class="row" data-testid="receipt-transaction-row"><span>Transaction ID</span><strong>{{ payment.transaction_id }}</strong></div>
+      <div class="row" data-testid="receipt-paid-at-row"><span>Paid At</span><strong>{{ payment.paid_at }}</strong></div>
+      <button onclick="window.print()" data-testid="receipt-print-button">Print Receipt</button>
+    </div>
+  </body>
+</html>

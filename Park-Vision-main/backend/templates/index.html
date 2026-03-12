@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Park Vision — Find Your Spot. Instantly.{% endblock %}
+
+{% block content %}
+<section class="container hero" data-testid="landing-hero-section">
+  <div>
+    <p class="badge" style="border-color: rgba(0,212,255,.35); width: fit-content" data-testid="landing-hero-badge">
+      Real-Time Smart Parking Detection System
+    </p>
+    <h1 class="hero-title" data-testid="landing-main-title">Find Your Spot. Instantly.</h1>
+    <p class="hero-sub" data-typewriter="Live occupancy. Fast booking. Secure payment. One futuristic parking command center." data-testid="landing-typewriter-subtitle"></p>
+    <div class="hero-actions">
+      <a href="/api/register" class="btn primary" data-testid="landing-get-started-button">Get Started</a>
+      <a href="/api/dashboard" class="btn" data-testid="landing-live-demo-button">Live Demo</a>
+    </div>
+  </div>
+
+  <div class="hero-visual" data-testid="landing-floating-mini-grid">
+    <div class="hero-illustration card" data-testid="landing-hero-illustration">
+      <img src="/api/static/images/parking-hero.svg" alt="Parking illustration" data-testid="landing-illustration-image" />
+    </div>
+    <div class="glass mini-grid" data-testid="landing-mini-grid-overlay">
+      {% for _ in range(12) %}
+      <div class="mini-cell" data-testid="landing-mini-slot-cell"></div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="container section" data-testid="landing-features-section">
+  <div class="feature-grid">
+    <article class="card" data-testid="feature-card-realtime">
+      <h3><i class="fa-solid fa-wave-square"></i> Real-Time Detection</h3>
+      <p class="text-muted">Live status changes with instant broadcasts, no refresh needed.</p>
+    </article>
+    <article class="card" data-testid="feature-card-accuracy">
+      <h3><i class="fa-solid fa-crosshairs"></i> AI Accuracy</h3>
+      <p class="text-muted">Zone and floor precision with live simulation and graceful fallback.</p>
+    </article>
+    <article class="card" data-testid="feature-card-payments">
+      <h3><i class="fa-solid fa-shield"></i> Secure Payments</h3>
+      <p class="text-muted">Fast mock checkout with status tracking and printable receipts.</p>
+    </article>
+  </div>
+</section>
+
+<section class="container section" data-testid="landing-how-it-works-section">
+  <h2 style="margin-bottom: 1rem">How It Works</h2>
+  <div class="step-flow">
+    <article class="card step-card" data-testid="step-register-card">
+      <h3>Step 1</h3>
+      <p>Register account and vehicle in under 1 minute.</p>
+    </article>
+    <article class="card step-card" data-testid="step-find-spot-card">
+      <h3>Step 2</h3>
+      <p>Track availability and reserve your slot instantly.</p>
+    </article>
+    <article class="card step-card" data-testid="step-pay-park-card">
+      <h3>Step 3</h3>
+      <p>Pay securely and enter with booking QR reference.</p>
+    </article>
+  </div>
+</section>
+
+<section class="container section">
+  <div class="stats-bar glass" data-testid="landing-stats-counter-bar">
+    <article class="stats-item" data-testid="stats-total-spots">
+      <strong data-counter-target="1200">0</strong>
+      <span class="text-muted">Spots</span>
+    </article>
+    <article class="stats-item" data-testid="stats-accuracy">
+      <strong data-counter-target="99">0</strong>
+      <span class="text-muted">Accuracy %</span>
+    </article>
+    <article class="stats-item" data-testid="stats-locations">
+      <strong data-counter-target="3">0</strong>
+      <span class="text-muted">Active Locations</span>
+    </article>
+    <article class="stats-item" data-testid="stats-users">
+      <strong data-counter-target="50000">0</strong>
+      <span class="text-muted">Users</span>
+    </article>
+  </div>
+</section>
+{% endblock %}

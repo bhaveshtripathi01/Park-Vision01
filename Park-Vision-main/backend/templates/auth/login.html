@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Login — Park Vision{% endblock %}
+
+{% block content %}
+<section class="split-shell" data-testid="login-page-shell">
+  <aside class="visual-pane" data-testid="login-visual-pane">
+    <h1 class="hero-title" data-testid="login-page-title">Welcome back to Park Vision</h1>
+    <p class="text-muted" data-testid="login-page-subtitle">
+      Monitor slot activity, receive live updates, and reserve in seconds.
+    </p>
+    <div class="auth-illustration card" data-testid="login-illustration-card">
+      <img src="/api/static/images/auth-illustration.svg" alt="Parking login illustration" data-testid="login-illustration-image" />
+    </div>
+    <div class="mini-grid card" data-testid="login-animated-grid">
+      {% for _ in range(12) %}
+      <div class="mini-cell"></div>
+      {% endfor %}
+    </div>
+  </aside>
+
+  <div class="form-pane" data-testid="login-form-pane">
+    <form id="login-form" class="card" data-testid="login-form">
+      <h2 style="margin-bottom: 0.8rem">Sign In</h2>
+      <div class="field" data-testid="login-email-field">
+        <label for="email">Email</label>
+        <input id="email" class="input" type="email" required data-testid="login-email-input" />
+      </div>
+      <div class="field" style="margin-top: 0.7rem" data-testid="login-password-field">
+        <label for="password">Password</label>
+        <div style="display:flex; gap:.5rem;">
+          <input id="password" class="input" type="password" required data-testid="login-password-input" />
+          <button type="button" id="password-toggle" class="btn" data-testid="login-password-toggle-button">
+            <i class="fa-regular fa-eye"></i>
+          </button>
+        </div>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:.8rem;">
+        <label style="display:flex; align-items:center; gap:.4rem" data-testid="login-remember-checkbox-wrapper">
+          <input type="checkbox" id="remember" data-testid="login-remember-checkbox" />
+          Remember me
+        </label>
+        <button type="button" id="forgot-trigger" class="btn" data-testid="login-forgot-trigger-button">Forgot?</button>
+      </div>
+
+      <div id="forgot-panel" class="card" style="display:none; margin-top:.8rem;" data-testid="forgot-password-panel">
+        <label for="forgot-email">Reset email</label>
+        <input id="forgot-email" class="input" type="email" data-testid="forgot-password-email-input" />
+        <small class="text-muted">UI demo only. Backend reset flow can be added next.</small>
+      </div>
+
+      <button id="login-submit" class="btn primary full" style="margin-top:1rem" data-testid="login-form-submit-button">
+        Login
+      </button>
+      <div style="display:grid; gap:.5rem; margin-top:.9rem;">
+        <button type="button" class="btn full" data-testid="login-google-button"><i class="fa-brands fa-google"></i> Continue with Google</button>
+        <button type="button" class="btn full" data-testid="login-apple-button"><i class="fa-brands fa-apple"></i> Continue with Apple</button>
+      </div>
+      <p class="text-muted" style="margin-top:.7rem; text-align:center;">
+        No account? <a href="/api/register" data-testid="login-register-link">Create one</a>
+      </p>
+      <p id="login-error" class="error-message" data-testid="login-error-message"></p>
+    </form>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const form = document.getElementById("login-form");
+  const submitButton = document.getElementById("login-submit");
+  const errorEl = document.getElementById("login-error");
+  document.getElementById("password-toggle").addEventListener("click", () => {
+    const password = document.getElementById("password");
+    password.type = password.type === "password" ? "text" : "password";
+  });
+  document.getElementById("forgot-trigger").addEventListener("click", () => {
+    const panel = document.getElementById("forgot-panel");
+    panel.style.display = panel.style.display === "none" ? "block" : "none";
+  });
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    errorEl.textContent = "";
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<span class="loading-spinner"></span> Logging in...';
+
+    try {
+      const payload = {
+        email: document.getElementById("email").value.trim(),
+        password: document.getElementById("password").value,
+      };
+      const data = await window.ParkVision.fetchJSON("/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      window.ParkVision.showToast("Login successful");
+      setTimeout(() => {
+        window.location.href = data.redirect_url;
+      }, 400);
+    } catch (error) {
+      errorEl.textContent = error.message;
+      window.ParkVision.showToast(error.message, "error");
+    } finally {
+      submitButton.disabled = false;
+      submitButton.textContent = "Login";
+    }
+  });
+</script>
+{% endblock %}

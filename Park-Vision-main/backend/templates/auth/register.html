@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Register — Park Vision{% endblock %}
+
+{% block content %}
+<section class="split-shell" data-testid="register-page-shell">
+  <aside class="visual-pane" data-testid="register-visual-pane">
+    <h1 class="hero-title" data-testid="register-title">Create your parking command account</h1>
+    <p class="text-muted" data-testid="register-subtitle">
+      Register once, monitor every zone in real-time, and reserve with confidence.
+    </p>
+    <div class="auth-illustration card" data-testid="register-illustration-card">
+      <img src="/api/static/images/auth-illustration.svg" alt="Parking register illustration" data-testid="register-illustration-image" />
+    </div>
+    <div class="card" data-testid="register-password-guide">
+      <h3>Password Rules</h3>
+      <p class="text-muted">Use at least 8 chars, include one uppercase and one number.</p>
+    </div>
+  </aside>
+
+  <div class="form-pane" data-testid="register-form-pane">
+    <form id="register-form" class="card" data-testid="register-form">
+      <h2 style="margin-bottom: 0.8rem">Create Account</h2>
+      <div class="field-row">
+        <div class="field"><label>Full Name</label><input id="full-name" class="input" required data-testid="register-full-name-input" /></div>
+        <div class="field"><label>Email</label><input id="email" class="input" type="email" required data-testid="register-email-input" /></div>
+      </div>
+      <div class="field-row" style="margin-top:.7rem;">
+        <div class="field"><label>Phone</label><input id="phone" class="input" required data-testid="register-phone-input" /></div>
+        <div class="field"><label>Vehicle Plate</label><input id="vehicle-number" class="input" required data-testid="register-vehicle-number-input" /></div>
+      </div>
+      <div class="field" style="margin-top:.7rem;">
+        <label>Vehicle Type</label>
+        <select id="vehicle-type" class="select" data-testid="register-vehicle-type-select">
+          <option value="car">Car</option>
+          <option value="bike">Bike</option>
+          <option value="suv">SUV</option>
+          <option value="truck">Truck</option>
+        </select>
+      </div>
+      <div class="field-row" style="margin-top:.7rem;">
+        <div class="field">
+          <label>Password</label>
+          <input id="password" class="input" type="password" required data-testid="register-password-input" />
+          <div class="card" style="padding:.4rem; margin-top:.2rem;">
+            <div id="password-strength" style="height:8px; border-radius:999px; background:#2c3246; overflow:hidden;">
+              <span id="password-strength-fill" style="display:block; height:100%; width:0%; background:var(--accent-red);"></span>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Confirm Password</label>
+          <input id="confirm-password" class="input" type="password" required data-testid="register-confirm-password-input" />
+          <small id="password-match" class="text-muted" data-testid="register-password-match-indicator"></small>
+        </div>
+      </div>
+
+      <button id="register-submit" class="btn primary full" style="margin-top:1rem" data-testid="register-form-submit-button">
+        Create Account
+      </button>
+      <p id="register-message" class="text-muted" style="margin-top:.7rem;" data-testid="register-status-message"></p>
+    </form>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const registerForm = document.getElementById("register-form");
+  const passwordInput = document.getElementById("password");
+  const confirmInput = document.getElementById("confirm-password");
+  const strengthFill = document.getElementById("password-strength-fill");
+  const matchIndicator = document.getElementById("password-match");
+  const registerMessage = document.getElementById("register-message");
+  const submitBtn = document.getElementById("register-submit");
+
+  function updateStrength() {
+    const value = passwordInput.value;
+    let score = 0;
+    if (value.length >= 8) score += 1;
+    if (/[A-Z]/.test(value)) score += 1;
+    if (/\d/.test(value)) score += 1;
+    const widths = [0, 34, 67, 100];
+    const colors = ["var(--accent-red)", "var(--accent-red)", "var(--accent-amber)", "var(--accent-green)"];
+    strengthFill.style.width = `${widths[score]}%`;
+    strengthFill.style.background = colors[score];
+  }
+
+  function updateMatch() {
+    if (!confirmInput.value) {
+      matchIndicator.textContent = "";
+      return;
+    }
+    const isMatch = confirmInput.value === passwordInput.value;
+    matchIndicator.textContent = isMatch ? "Passwords match" : "Passwords do not match";
+    matchIndicator.style.color = isMatch ? "var(--accent-green)" : "#ff8ea2";
+  }
+
+  passwordInput.addEventListener("input", () => {
+    updateStrength();
+    updateMatch();
+  });
+  confirmInput.addEventListener("input", updateMatch);
+
+  registerForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    registerMessage.textContent = "";
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="loading-spinner"></span> Creating account...';
+
+    const payload = {
+      full_name: document.getElementById("full-name").value.trim(),
+      email: document.getElementById("email").value.trim(),
+      phone: document.getElementById("phone").value.trim(),
+      password: passwordInput.value,
+      confirm_password: confirmInput.value,
+      vehicle_number: document.getElementById("vehicle-number").value.trim(),
+      vehicle_type: document.getElementById("vehicle-type").value,
+    };
+
+    try {
+      const data = await window.ParkVision.fetchJSON("/api/auth/register", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      registerMessage.textContent = "✓ Account created! Redirecting to login...";
+      registerMessage.style.color = "var(--accent-green)";
+      setTimeout(() => {
+        window.location.href = data.redirect_url;
+      }, 1200);
+    } catch (error) {
+      registerMessage.textContent = error.message;
+      registerMessage.style.color = "#ff8ea2";
+      window.ParkVision.showToast(error.message, "error");
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Create Account";
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,36 @@
+<div id="booking-modal" class="modal" aria-hidden="true" data-testid="dashboard-booking-modal">
+  <div class="modal-panel" data-testid="dashboard-booking-modal-panel">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h3 data-testid="booking-modal-title">Confirm Booking</h3>
+      <button id="booking-modal-close" class="btn" data-testid="booking-modal-close-button">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <p id="booking-slot-meta" class="text-muted" style="margin-top:.5rem;" data-testid="booking-modal-slot-meta"></p>
+
+    <form id="booking-form" style="margin-top:1rem; display:grid; gap:.8rem;" data-testid="dashboard-booking-form">
+      <div class="field">
+        <label for="booking-vehicle-id">Vehicle</label>
+        <select id="booking-vehicle-id" class="select" required data-testid="booking-modal-vehicle-select"></select>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="booking-check-in">Check-in</label>
+          <input id="booking-check-in" class="input" type="datetime-local" required data-testid="booking-modal-check-in-input" />
+        </div>
+        <div class="field">
+          <label for="booking-check-out">Check-out</label>
+          <input id="booking-check-out" class="input" type="datetime-local" required data-testid="booking-modal-check-out-input" />
+        </div>
+      </div>
+      <div class="card" data-testid="booking-price-breakdown-card">
+        <p id="booking-breakdown" class="text-muted" data-testid="booking-price-breakdown-text">Select a time range</p>
+        <h2 id="booking-total" data-testid="booking-total-amount">₹0.00</h2>
+      </div>
+      <button id="booking-submit-button" class="btn primary full" type="submit" data-testid="booking-proceed-payment-button">
+        Book &amp; Proceed to Payment
+      </button>
+    </form>
+  </div>
+</div>

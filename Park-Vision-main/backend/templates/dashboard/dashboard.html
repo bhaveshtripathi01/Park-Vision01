@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — Park Vision{% endblock %}
+
+{% block content %}
+<section id="parking-dashboard" class="container dashboard-shell" data-testid="dashboard-page">
+  <div class="dashboard-top" data-testid="dashboard-header-row">
+    <div>
+      <h1 data-testid="dashboard-heading">Live Parking Dashboard</h1>
+      <p class="text-muted" data-testid="dashboard-subheading">Zone intelligence with real-time slot transitions</p>
+    </div>
+    <div class="live-pill" data-testid="dashboard-live-indicator">Live</div>
+  </div>
+
+  <div class="kpi-grid" data-testid="dashboard-kpi-row">
+    <article class="kpi-card" data-testid="kpi-total-card">
+      <small class="text-muted">Total Slots</small>
+      <div class="kpi-value" id="kpi-total-slots" data-testid="kpi-total-slots">48</div>
+    </article>
+    <article class="kpi-card" data-testid="kpi-available-card">
+      <small class="text-muted">Available</small>
+      <div class="kpi-value" id="kpi-available-slots" data-testid="kpi-available-slots">0</div>
+    </article>
+    <article class="kpi-card" data-testid="kpi-occupied-card">
+      <small class="text-muted">Occupied</small>
+      <div class="kpi-value" id="kpi-occupied-slots" data-testid="kpi-occupied-slots">0</div>
+    </article>
+    <article class="kpi-card" data-testid="kpi-my-active-card">
+      <small class="text-muted">My Active Bookings</small>
+      <div class="kpi-value" id="kpi-my-active-bookings" data-testid="kpi-my-active-bookings">0</div>
+    </article>
+  </div>
+
+  <div class="card" data-testid="dashboard-controls-panel">
+    <div class="tabs" style="margin-bottom:.8rem;" data-testid="zone-tabs-row">
+      <button class="tab-btn active" data-zone-tab="A" data-testid="zone-tab-a">Zone A</button>
+      <button class="tab-btn" data-zone-tab="B" data-testid="zone-tab-b">Zone B</button>
+      <button class="tab-btn" data-zone-tab="C" data-testid="zone-tab-c">Zone C</button>
+    </div>
+    <div class="field" style="max-width: 220px; margin-bottom: .8rem;">
+      <label for="floor-filter">Floor Filter</label>
+      <select id="floor-filter" class="select" data-testid="dashboard-floor-filter-select">
+        <option value="">All Floors</option>
+        <option value="G">Ground</option>
+        <option value="1">Floor 1</option>
+        <option value="2">Floor 2</option>
+      </select>
+    </div>
+    <div id="slot-grid" class="slot-grid" data-testid="dashboard-slot-grid"></div>
+  </div>
+</section>
+
+{% include "dashboard/booking_modal.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.DASHBOARD_VEHICLES = {{ vehicles_json | safe }};
+</script>
+<script src="/api/static/js/websocket.js"></script>
+<script src="/api/static/js/parking-grid.js"></script>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Payment — Park Vision{% endblock %}
+
+{% block content %}
+<section id="payment-page" class="container payment-layout" data-testid="payment-page-layout">
+  <aside class="card" data-testid="payment-order-summary-card">
+    <a href="/api/dashboard" class="btn" data-testid="payment-back-button"><i class="fa-solid fa-arrow-left"></i> Back</a>
+    <h2 style="margin: .9rem 0 .7rem;">Order Summary</h2>
+    <p class="text-muted" data-testid="payment-order-slot">Slot: {{ booking.slot_code }} | Zone {{ booking.zone }}</p>
+    <p class="text-muted" data-testid="payment-order-checkin">Check-in: {{ booking.check_in }}</p>
+    <p class="text-muted" data-testid="payment-order-checkout">Check-out: {{ booking.check_out }}</p>
+    <p class="text-muted" data-testid="payment-order-duration">Duration: {{ booking.duration_hours }} hrs</p>
+    <hr style="border-color:rgba(255,255,255,.1); margin:.9rem 0;" />
+    <p data-testid="payment-order-base-amount">Base: ₹{{ "%.2f"|format(booking.amount) }}</p>
+    <p data-testid="payment-order-gst-amount">GST (18%): ₹{{ "%.2f"|format(booking.tax) }}</p>
+    <h2 id="payment-total-value" style="color:var(--accent-cyan); margin-top:.8rem;" data-testid="payment-order-total">₹{{ "%.2f"|format(booking.total) }}</h2>
+    <div style="display:flex; gap:.6rem; margin-top:1rem;">
+      <input id="promo-code" class="input" placeholder="Promo code" data-testid="payment-promo-code-input" />
+      <button id="promo-apply-button" class="btn" data-testid="payment-promo-apply-button">Apply</button>
+    </div>
+  </aside>
+
+  <section class="card" data-testid="payment-methods-card">
+    <div class="tabs" style="margin-bottom:1rem;" data-testid="payment-method-tabs">
+      <button class="tab-btn active" data-payment-tab="card" data-testid="payment-tab-card">Card</button>
+      <button class="tab-btn" data-payment-tab="upi" data-testid="payment-tab-upi">UPI</button>
+      <button class="tab-btn" data-payment-tab="netbanking" data-testid="payment-tab-netbanking">Net Banking</button>
+      <button class="tab-btn" data-payment-tab="wallet" data-testid="payment-tab-wallet">Wallet</button>
+    </div>
+
+    <div class="payment-method-panel active" data-payment-panel="card" data-testid="payment-panel-card">
+      <div id="card-preview" class="card-preview" data-testid="payment-card-preview">
+        <small class="text-muted">Card Type: <span id="card-type-detected" data-testid="payment-card-type-detected">Card</span></small>
+        <h3 style="margin-top:1.4rem;" data-testid="payment-card-preview-number">•••• •••• •••• ••••</h3>
+      </div>
+      <div class="field-row" style="margin-top: .8rem;">
+        <div class="field"><label>Card Number</label><input id="card-number" class="input" maxlength="19" data-testid="payment-card-number-input" /></div>
+        <div class="field"><label>Cardholder</label><input id="card-holder" class="input" data-testid="payment-cardholder-input" /></div>
+      </div>
+      <div class="field-row" style="margin-top: .8rem;">
+        <div class="field"><label>Expiry</label><input id="card-expiry" class="input" placeholder="MM/YY" data-testid="payment-card-expiry-input" /></div>
+        <div class="field"><label>CVV</label><input id="card-cvv" class="input" type="password" maxlength="3" data-testid="payment-card-cvv-input" /></div>
+      </div>
+    </div>
+
+    <div class="payment-method-panel" data-payment-panel="upi" data-testid="payment-panel-upi">
+      <div class="field"><label>UPI ID</label><input class="input" placeholder="name@upi" data-testid="payment-upi-id-input" /></div>
+      <div class="card" style="margin-top:.8rem;" data-testid="payment-upi-qr-card">Mock QR ready for scan • Apps: GPay / PhonePe / Paytm / BHIM</div>
+    </div>
+
+    <div class="payment-method-panel" data-payment-panel="netbanking" data-testid="payment-panel-netbanking">
+      <div class="field"><label>Select Bank</label>
+        <select class="select" data-testid="payment-netbanking-bank-select">
+          <option>State Bank of India</option><option>HDFC Bank</option><option>ICICI Bank</option>
+          <option>Axis Bank</option><option>Kotak Mahindra</option><option>Punjab National Bank</option>
+          <option>Bank of Baroda</option><option>Canara Bank</option><option>IDFC First</option><option>Yes Bank</option>
+        </select>
+      </div>
+      <p class="text-muted" style="margin-top:.6rem;" data-testid="payment-netbanking-notice">You’ll be redirected securely (mock flow).</p>
+    </div>
+
+    <div class="payment-method-panel" data-payment-panel="wallet" data-testid="payment-panel-wallet">
+      <p data-testid="payment-wallet-balance">Wallet Balance: <strong>₹500</strong></p>
+      <p class="text-muted" data-testid="payment-wallet-note">Top-up option is UI only in this version.</p>
+    </div>
+
+    <button id="pay-now-button" class="btn primary full" style="margin-top:1rem;" data-testid="payment-pay-now-button">Pay Now</button>
+  </section>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.PAYMENT_BOOKING = {{ booking_json | safe }};
+</script>
+<script src="/api/static/js/payment.js"></script>
+{% endblock %}

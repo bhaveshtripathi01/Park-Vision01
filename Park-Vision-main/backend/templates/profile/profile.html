@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+
+{% block title %}Profile — Park Vision{% endblock %}
+
+{% block content %}
+<section class="container profile-shell" data-testid="profile-page">
+  <div class="card" data-testid="profile-user-card">
+    <h1 data-testid="profile-page-title">Profile</h1>
+    <p class="text-muted" data-testid="profile-page-subtitle">Manage account, vehicles, and preferences</p>
+    <div class="field-row" style="margin-top:.8rem;">
+      <div class="field"><label>Name</label><input id="profile-name" class="input" data-testid="profile-name-input" /></div>
+      <div class="field"><label>Phone</label><input id="profile-phone" class="input" data-testid="profile-phone-input" /></div>
+    </div>
+    <div class="field" style="margin-top:.7rem;"><label>Email</label><input id="profile-email" class="input" disabled data-testid="profile-email-input" /></div>
+    <button id="profile-save-button" class="btn primary" style="margin-top:.9rem;" data-testid="profile-save-button">Save Profile</button>
+  </div>
+
+  <div class="card" data-testid="profile-vehicles-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.6rem;">
+      <h2>Vehicles</h2>
+      <button id="vehicle-add-toggle" class="btn" data-testid="vehicle-add-toggle-button">Add Vehicle</button>
+    </div>
+    <form id="vehicle-add-form" style="display:none; margin-top:.8rem;" data-testid="vehicle-add-form">
+      <div class="field-row">
+        <div class="field"><label>Number Plate</label><input id="vehicle-number" class="input" data-testid="vehicle-number-input" /></div>
+        <div class="field"><label>Type</label>
+          <select id="vehicle-type" class="select" data-testid="vehicle-type-select">
+            <option value="car">Car</option><option value="bike">Bike</option><option value="suv">SUV</option><option value="truck">Truck</option>
+          </select>
+        </div>
+      </div>
+      <label style="display:flex; align-items:center; gap:.4rem; margin-top:.5rem;">
+        <input id="vehicle-primary" type="checkbox" data-testid="vehicle-primary-checkbox" /> Set as primary
+      </label>
+      <button class="btn" type="submit" style="margin-top:.6rem;" data-testid="vehicle-add-submit-button">Add</button>
+    </form>
+    <div id="vehicle-list" class="vehicle-list" style="margin-top:.9rem;" data-testid="vehicle-list"></div>
+    <div id="vehicle-history-panel" class="card" style="margin-top:.9rem; display:none;" data-testid="vehicle-history-panel">
+      <h3 id="vehicle-history-title" data-testid="vehicle-history-title">Vehicle History</h3>
+      <div id="vehicle-history-list" style="display:grid; gap:.55rem; margin-top:.6rem;" data-testid="vehicle-history-list"></div>
+    </div>
+  </div>
+
+  <div class="card" data-testid="profile-notifications-card">
+    <h2>Notification Preferences</h2>
+    <div class="toggle-row">
+      <span data-testid="pref-booking-reminders-label">Booking Reminders</span>
+      <label class="switch"><input id="pref-booking-reminders" type="checkbox" data-testid="pref-booking-reminders-toggle" /><span></span></label>
+    </div>
+    <div class="toggle-row">
+      <span data-testid="pref-payment-receipts-label">Payment Receipts</span>
+      <label class="switch"><input id="pref-payment-receipts" type="checkbox" data-testid="pref-payment-receipts-toggle" /><span></span></label>
+    </div>
+    <div class="toggle-row">
+      <span data-testid="pref-promo-offers-label">Promo Offers</span>
+      <label class="switch"><input id="pref-promo-offers" type="checkbox" data-testid="pref-promo-offers-toggle" /><span></span></label>
+    </div>
+    <button id="save-prefs" class="btn" style="margin-top:.8rem;" data-testid="profile-save-prefs-button">Save Preferences</button>
+  </div>
+
+  <div class="card" data-testid="profile-password-card">
+    <button id="password-toggle" class="btn" data-testid="password-section-toggle-button">Change Password</button>
+    <form id="password-form" style="display:none; margin-top:.8rem;" data-testid="password-change-form">
+      <div class="field-row">
+        <div class="field"><label>Current</label><input id="password-current" class="input" type="password" data-testid="password-current-input" /></div>
+        <div class="field"><label>New</label><input id="password-new" class="input" type="password" data-testid="password-new-input" /></div>
+      </div>
+      <div class="field" style="margin-top:.7rem;"><label>Confirm</label><input id="password-confirm" class="input" type="password" data-testid="password-confirm-input" /></div>
+      <button class="btn" type="submit" style="margin-top:.8rem;" data-testid="password-change-submit-button">Update Password</button>
+    </form>
+  </div>
+
+  <div class="card" style="border-color:rgba(255,59,92,.45);" data-testid="profile-danger-zone-card">
+    <h2 style="color:#ff8ea2;">Danger Zone</h2>
+    <p class="text-muted">Type <strong>delete</strong> to remove account permanently.</p>
+    <div style="display:flex; gap:.6rem; margin-top:.6rem; flex-wrap:wrap;">
+      <input id="delete-confirm" class="input" style="max-width:180px;" placeholder="delete" data-testid="delete-account-confirm-input" />
+      <button id="delete-account" class="btn danger" data-testid="delete-account-button">Delete Account</button>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const nameInput = document.getElementById("profile-name");
+  const phoneInput = document.getElementById("profile-phone");
+  const emailInput = document.getElementById("profile-email");
+  const vehicleList = document.getElementById("vehicle-list");
+  const vehicleAddForm = document.getElementById("vehicle-add-form");
+
+  let profileState = { user: null, vehicles: [], preferences: null };
+
+  function vehicleIcon(type) {
+    if (type === "bike") return "fa-motorcycle";
+    if (type === "suv") return "fa-truck-monster";
+    if (type === "truck") return "fa-truck";
+    return "fa-car-side";
+  }
+
+  function renderVehicles() {
+    vehicleList.innerHTML = profileState.vehicles
+      .map(
+        (vehicle) => `
+      <article class="card" data-testid="vehicle-card-${vehicle.id}">
+        <h4><i class="fa-solid ${vehicleIcon(vehicle.vehicle_type)}"></i> ${vehicle.number_plate}</h4>
+        <p class="text-muted" data-testid="vehicle-type-${vehicle.id}">${vehicle.vehicle_type.toUpperCase()}</p>
+        <p class="text-muted" data-testid="vehicle-history-count-${vehicle.id}">History records: ${vehicle.history_count || 0}</p>
+        ${vehicle.is_primary ? '<span class="badge" style="border-color:rgba(0,212,255,.4);">Primary</span>' : ""}
+        <div style="display:flex; gap:.5rem; flex-wrap:wrap; margin-top:.6rem;">
+          <button class="btn" data-view-history="${vehicle.id}" data-testid="vehicle-view-history-${vehicle.id}">View History</button>
+          <button class="btn danger" data-remove-vehicle="${vehicle.id}" data-testid="vehicle-remove-${vehicle.id}">Remove</button>
+        </div>
+      </article>
+    `,
+      )
+      .join("");
+
+    vehicleList.querySelectorAll("[data-view-history]").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const vehicleId = button.getAttribute("data-view-history");
+        try {
+          const data = await window.ParkVision.fetchJSON(`/api/profile-api/vehicles/${vehicleId}/history`);
+          renderVehicleHistory(data);
+        } catch (error) {
+          window.ParkVision.showToast(error.message, "error");
+        }
+      });
+    });
+
+    vehicleList.querySelectorAll("[data-remove-vehicle]").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const vehicleId = button.getAttribute("data-remove-vehicle");
+        if (!confirm("Remove this vehicle?")) return;
+        try {
+          await window.ParkVision.fetchJSON(`/api/profile-api/vehicles/${vehicleId}`, { method: "DELETE" });
+          await loadProfile();
+          window.ParkVision.showToast("Vehicle removed");
+        } catch (error) {
+          window.ParkVision.showToast(error.message, "error");
+        }
+      });
+    });
+  }
+
+  function prettyEventLabel(eventType) {
+    return String(eventType || "")
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  }
+
+  function renderVehicleHistory(data) {
+    const panel = document.getElementById("vehicle-history-panel");
+    const title = document.getElementById("vehicle-history-title");
+    const list = document.getElementById("vehicle-history-list");
+    panel.style.display = "block";
+    title.textContent = `Vehicle History — ${data.vehicle.number_plate}`;
+
+    if (!data.history.length) {
+      list.innerHTML = '<p class="text-muted" data-testid="vehicle-history-empty">No history found for this vehicle yet.</p>';
+      return;
+    }
+
+    list.innerHTML = data.history
+      .map(
+        (item) => `
+          <article class="card" data-testid="vehicle-history-item-${item.id}" style="padding:.65rem;">
+            <strong data-testid="vehicle-history-event-${item.id}">${prettyEventLabel(item.event_type)}</strong>
+            <p class="text-muted" data-testid="vehicle-history-details-${item.id}">${item.details || "No additional details"}</p>
+            <small class="text-muted" data-testid="vehicle-history-date-${item.id}">${item.created_at || ""}</small>
+          </article>
+        `,
+      )
+      .join("");
+  }
+
+  function fillForm() {
+    nameInput.value = profileState.user.full_name;
+    phoneInput.value = profileState.user.phone;
+    emailInput.value = profileState.user.email;
+
+    document.getElementById("pref-booking-reminders").checked = profileState.preferences.booking_reminders;
+    document.getElementById("pref-payment-receipts").checked = profileState.preferences.payment_receipts;
+    document.getElementById("pref-promo-offers").checked = profileState.preferences.promo_offers;
+    renderVehicles();
+  }
+
+  async function loadProfile() {
+    const data = await window.ParkVision.fetchJSON("/api/profile-api");
+    profileState = data;
+    fillForm();
+  }
+
+  document.getElementById("profile-save-button").addEventListener("click", async () => {
+    try {
+      await window.ParkVision.fetchJSON("/api/profile-api", {
+        method: "PUT",
+        body: JSON.stringify({ full_name: nameInput.value, phone: phoneInput.value }),
+      });
+      window.ParkVision.showToast("Profile updated");
+      await loadProfile();
+    } catch (error) {
+      window.ParkVision.showToast(error.message, "error");
+    }
+  });
+
+  document.getElementById("vehicle-add-toggle").addEventListener("click", () => {
+    vehicleAddForm.style.display = vehicleAddForm.style.display === "none" ? "block" : "none";
+  });
+
+  vehicleAddForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    try {
+      await window.ParkVision.fetchJSON("/api/profile-api/vehicles", {
+        method: "POST",
+        body: JSON.stringify({
+          number_plate: document.getElementById("vehicle-number").value,
+          vehicle_type: document.getElementById("vehicle-type").value,
+          is_primary: document.getElementById("vehicle-primary").checked,
+        }),
+      });
+      window.ParkVision.showToast("Vehicle added");
+      vehicleAddForm.reset();
+      await loadProfile();
+    } catch (error) {
+      window.ParkVision.showToast(error.message, "error");
+    }
+  });
+
+  document.getElementById("save-prefs").addEventListener("click", async () => {
+    try {
+      await window.ParkVision.fetchJSON("/api/profile-api/notifications", {
+        method: "PUT",
+        body: JSON.stringify({
+          booking_reminders: document.getElementById("pref-booking-reminders").checked,
+          payment_receipts: document.getElementById("pref-payment-receipts").checked,
+          promo_offers: document.getElementById("pref-promo-offers").checked,
+        }),
+      });
+      window.ParkVision.showToast("Preferences updated");
+    } catch (error) {
+      window.ParkVision.showToast(error.message, "error");
+    }
+  });
+
+  document.getElementById("password-toggle").addEventListener("click", () => {
+    const form = document.getElementById("password-form");
+    form.style.display = form.style.display === "none" ? "block" : "none";
+  });
+
+  document.getElementById("password-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    try {
+      await window.ParkVision.fetchJSON("/api/profile-api/password", {
+        method: "PUT",
+        body: JSON.stringify({
+          current_password: document.getElementById("password-current").value,
+          new_password: document.getElementById("password-new").value,
+          confirm_password: document.getElementById("password-confirm").value,
+        }),
+      });
+      window.ParkVision.showToast("Password changed");
+      event.target.reset();
+    } catch (error) {
+      window.ParkVision.showToast(error.message, "error");
+    }
+  });
+
+  document.getElementById("delete-account").addEventListener("click", async () => {
+    const value = document.getElementById("delete-confirm").value;
+    if (!confirm("This action cannot be undone. Continue?")) return;
+    try {
+      const data = await window.ParkVision.fetchJSON(`/api/profile-api/delete-account?confirm=${encodeURIComponent(value)}`, {
+        method: "DELETE",
+      });
+      window.ParkVision.showToast("Account deleted");
+      setTimeout(() => {
+        window.location.href = data.redirect_url;
+      }, 400);
+    } catch (error) {
+      window.ParkVision.showToast(error.message, "error");
+    }
+  });
+
+  loadProfile().catch((error) => window.ParkVision.showToast(error.message, "error"));
+</script>
+{% endblock %}

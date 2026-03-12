@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token }}" />
+    <title>{% block title %}Park Vision{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+    <link rel="stylesheet" href="/api/static/css/base.css" />
+    <link rel="stylesheet" href="/api/static/css/components.css" />
+    <link rel="stylesheet" href="/api/static/css/pages.css" />
+    {% block head_extra %}{% endblock %}
+  </head>
+  <body>
+    <header id="top-nav" class="top-nav" data-testid="top-navigation">
+      <div class="container nav-shell">
+        <a href="/api/" class="brand" data-testid="brand-logo-link">
+          <i class="fa-solid fa-square-parking"></i>
+          <span>Park Vision</span>
+        </a>
+
+        <nav class="nav-links" data-testid="main-navigation-links">
+          <a class="nav-link" href="/api/" data-testid="nav-home-link">Home</a>
+          <a class="nav-link" href="/api/dashboard" data-testid="nav-dashboard-link">Dashboard</a>
+          <a class="nav-link" href="/api/my-bookings" data-testid="nav-bookings-link">My Bookings</a>
+          <a class="nav-link" href="/api/profile" data-testid="nav-profile-link">Profile</a>
+        </nav>
+
+        <div class="auth-actions" data-testid="navigation-auth-actions">
+          {% if current_user %}
+          <button id="user-menu-button" class="btn" data-testid="user-menu-toggle-button">
+            <span class="avatar-pill" data-testid="nav-user-avatar">
+              {{ current_user.full_name.split(' ')[0][0] }}{{ current_user.full_name.split(' ')[1][0] if current_user.full_name.split(' ')|length > 1 else '' }}
+            </span>
+          </button>
+          <div id="user-menu" class="card" hidden data-testid="user-dropdown-menu" style="position: absolute; top: 66px; right: 1rem; width: 190px;">
+            <a href="/api/profile" class="nav-link" data-testid="user-menu-profile-link">Profile</a>
+            <a href="/api/my-bookings" class="nav-link" data-testid="user-menu-bookings-link">My Bookings</a>
+            <button id="logout-button" class="btn danger" data-testid="user-menu-logout-button" style="width: 100%; margin-top: 0.6rem;">
+              Logout
+            </button>
+          </div>
+          {% else %}
+          <a href="/api/login" class="btn" data-testid="nav-login-button">Login</a>
+          <a href="/api/register" class="btn primary" data-testid="nav-register-button">Register</a>
+          {% endif %}
+        </div>
+      </div>
+    </header>
+
+    <main data-testid="page-main-content">{% block content %}{% endblock %}</main>
+
+    <footer class="footer" data-testid="footer-section">
+      <div class="container footer-grid">
+        <div>
+          <h4 class="footer-title" data-testid="footer-brand-title">Park Vision</h4>
+          <p class="text-muted" data-testid="footer-brand-description">
+            Real-time smart parking detection with precision alerts and secure booking.
+          </p>
+        </div>
+        <div>
+          <h4 class="footer-title">Quick Links</h4>
+          <p><a href="/api/dashboard" data-testid="footer-dashboard-link">Live Dashboard</a></p>
+          <p><a href="/api/my-bookings" data-testid="footer-bookings-link">Bookings</a></p>
+        </div>
+        <div>
+          <h4 class="footer-title">Social</h4>
+          <p class="text-muted" data-testid="footer-social-links">
+            <i class="fa-brands fa-x-twitter"></i> X
+            &nbsp; <i class="fa-brands fa-linkedin"></i> LinkedIn
+            &nbsp; <i class="fa-brands fa-instagram"></i> Instagram
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <div id="toast-stack" class="toast-stack" data-testid="toast-stack"></div>
+
+    <script>
+      window.PARK_VISION_USER = {{ user_json | safe }};
+    </script>
+    <script src="/api/static/js/main.js"></script>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

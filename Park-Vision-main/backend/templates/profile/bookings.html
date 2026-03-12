@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}My Bookings — Park Vision{% endblock %}
+
+{% block content %}
+<section class="container section" data-testid="bookings-page">
+  <div style="display:flex; justify-content:space-between; align-items:center; gap:.7rem; flex-wrap:wrap;">
+    <h1 data-testid="bookings-page-title">My Bookings</h1>
+    <span class="badge" style="border-color:rgba(0,212,255,.4);" id="booking-count-badge" data-testid="bookings-count-badge">0 bookings</span>
+  </div>
+
+  <div class="tabs" style="margin-top:.8rem;" data-testid="bookings-filter-tabs">
+    <button class="tab-btn active" data-filter="all" data-testid="bookings-filter-all">All</button>
+    <button class="tab-btn" data-filter="active" data-testid="bookings-filter-active">Active</button>
+    <button class="tab-btn" data-filter="completed" data-testid="bookings-filter-completed">Completed</button>
+    <button class="tab-btn" data-filter="cancelled" data-testid="bookings-filter-cancelled">Cancelled</button>
+  </div>
+
+  <div id="booking-list" class="booking-list" style="margin-top:1rem;" data-testid="bookings-list-container"></div>
+  <div id="bookings-empty" class="card" style="display:none; margin-top:1rem;" data-testid="bookings-empty-state">
+    No bookings found. Reserve a slot from dashboard.
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const listEl = document.getElementById("booking-list");
+  const emptyEl = document.getElementById("bookings-empty");
+  const countBadge = document.getElementById("booking-count-badge");
+  const filterButtons = document.querySelectorAll("[data-filter]");
+  let bookings = [];
+  let currentFilter = "all";
+
+  function statusBadge(status) {
+    return `<span class="badge ${status === "active" ? "available" : status === "cancelled" ? "occupied" : "reserved"}">${status}</span>`;
+  }
+
+  function render() {
+    const filtered = currentFilter === "all" ? bookings : bookings.filter((b) => b.status === currentFilter);
+    countBadge.textContent = `${filtered.length} bookings`;
+
+    if (!filtered.length) {
+      listEl.innerHTML = "";
+      emptyEl.style.display = "block";
+      return;
+    }
+
+    emptyEl.style.display = "none";
+    listEl.innerHTML = filtered
+      .map(
+        (booking) => `
+        <article class="card booking-card" data-testid="booking-card-${booking.id}">
+          <div>
+            <h3 data-testid="booking-ref-${booking.id}">${booking.booking_ref}</h3>
+            <p class="text-muted" data-testid="booking-slot-${booking.id}">${booking.slot_code} • Zone ${booking.zone}</p>
+            <p class="text-muted" data-testid="booking-vehicle-${booking.id}">Vehicle: ${booking.vehicle_number} (${booking.vehicle_type.toUpperCase()})</p>
+            <p class="text-muted" data-testid="booking-time-${booking.id}">${booking.check_in} → ${booking.check_out}</p>
+            <p data-testid="booking-amount-${booking.id}">Amount: ₹${Number(booking.amount).toFixed(2)}</p>
+            ${statusBadge(booking.status)}
+          </div>
+          <div style="display:grid; gap:.5rem;">
+            ${booking.status === "active" || booking.status === "pending" ? `<button class="btn danger" data-cancel-id="${booking.id}" data-testid="booking-cancel-${booking.id}">Cancel Booking</button>` : ""}
+            ${booking.payment_id ? `<a href="/api/payments/${booking.payment_id}/receipt" class="btn" data-testid="booking-receipt-${booking.id}">View Receipt</a>` : ""}
+          </div>
+        </article>
+      `,
+      )
+      .join("");
+
+    listEl.querySelectorAll("[data-cancel-id]").forEach((button) => {
+      button.addEventListener("click", async () => {
+        if (!confirm("Cancel this booking?")) return;
+        try {
+          await window.ParkVision.fetchJSON(`/api/bookings/${button.getAttribute("data-cancel-id")}/cancel`, {
+            method: "DELETE",
+          });
+          window.ParkVision.showToast("Booking cancelled");
+          await loadBookings();
+        } catch (error) {
+          window.ParkVision.showToast(error.message, "error");
+        }
+      });
+    });
+  }
+
+  async function loadBookings() {
+    const data = await window.ParkVision.fetchJSON("/api/bookings/my");
+    bookings = data.bookings;
+    render();
+  }
+
+  filterButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      filterButtons.forEach((item) => item.classList.remove("active"));
+      btn.classList.add("active");
+      currentFilter = btn.getAttribute("data-filter");
+      render();
+    });
+  });
+
+  loadBookings().catch((error) => {
+    window.ParkVision.showToast(error.message, "error");
+  });
+</script>
+{% endblock %}
